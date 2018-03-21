@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="Keywords" content="">
+    <meta name="Description" content="">
+    <title>js结合canvas实战</title>
+    <script type="text/javascript" src="js/data.js"></script>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            background: #000033;
+        }
+        #canvas{
+            display: block;
+            background: #000033;
+            margin: 300px auto 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+<script>
+    var canvas = document.getElementById("canvas");
+    var cxt = canvas.getContext("2d");//画笔
+    var cW = 700;
+    var cH = 100;
+    canvas.width  = cW;
+    canvas.height = cH;
+    canvas.width = 660;
+    canvas.height = 100;
+    var R = canvas.height/20 - 1;//4
+    var data = [];//存储时间的数据
+    var balls = [];
+    (function(){
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date);//正则表达式：\d表示0-9数字
+        data.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);//push()数组的末尾添加一个或多个元素，并返回新的长度
+    })()
+    function drawDigit(index,num){
+        for(var i=0;i<digit[num].length;i++){//一维
+            for(var j=0;j<digit[num][i].length;j++){//二维
+                if(digit[num][i][j] == 1){//三维
+                    cxt.fillStyle = "#fff";
+                    cxt.beginPath();
+                    cxt.arc(14*(R+2)*index+j*2*(R+1)+(R+1),i*2*(R+1)+(R+1),R,2*Math.PI,false);//水平，垂直，大小，弧度
+                    cxt.closePath();
+                    cxt.fill();//填充*/
+                }
+            }
+        }
+    }
+    //判断哪些数字发生改变
+    function updataTime(){//已经改变的时间
+        var chageTimeArr = [];//改变的时间数据
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date);//正则表达式：\d表示0-9数字
+        var newTime = [];//当前改变时间的数据
+        newTime.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);//push()数组的末尾添加一个或多个元素，并返回新的长度
+        for(var i=data.length;i>=0;i--){
+            if(newTime[i] !== data[i]){
+                chageTimeArr.push(i+'_'+(Number(data[i])+1)%10);
+            }
+        };
+        //更新小球
+        for(var i=0;i<chageTimeArr.length;i++){
+            renderBalls.apply(this,chageTimeArr[i].split('_'));
+        }
+        data = newTime.concat();
+    }
+    //更新小球的运动状态
+    function updataBalls(){
+        for(var i=0;i<balls.length;i++){
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if(balls[i].x>cW+R|| balls[i].y>cH+R){
+                balls.splice(i,1);
+                i--;
+            }
+        }
+    }
+    //获取到更新小球的数据
+    function renderBalls(index,num){
+        var numArr = [1,2,3];
+        for(var i=0;i<digit[num].length;i++){//一维
+            for(var j=0;j<digit[num][i].length;j++){//二维
+                if(digit[num][i][j] == 1){//三维
+                    var ball = {
+                        x: 14*(R+2)*index+j*2*(R+1)+(R+1),
+                        y: i*2*(R+1)+(R+1),
+                        stepX: Math.floor(Math.random() * 4 - 2),
+                        stepY: -2*numArr[Math.floor(Math.random()*numArr.length)],
+                        disY: 1,
+                        color:function getRandomColor() {//获取随机颜色
+                            return '#' +
+                                    (function(color) {
+                                        return(color += '0123456789abcdef' [Math.floor(Math.random() * 16)]) &&
+                                        (color.length == 6) ? color : arguments.callee(color);
+                                    })('');
+                        }
+                    };
+                    balls.push(ball);
+                }
+            }
+        }
+    }
+    //渲染
+    function render(){
+        canvas.height = 100;//重置画布宽度 达到清空画布的效果
+        //渲染时钟
+        for(var i=0;i<data.length;i++){
+            drawDigit(i,data[i]);
+        }
+        //渲染小球
+        for(var i=0;i<balls.length;i++){
+            cxt.beginPath();
+            cxt.arc(balls[i].x,balls[i].y,R,2*Math.PI,false);//水平，垂直，大小，弧度
+            cxt.fillStyle = balls[i].color();
+            cxt.closePath();
+            cxt.fill();//填充*/
+        }
+    }
+    render();
+    clearInterval(timer);
+    var timer = setInterval(function(){
+        updataBalls();
+        updataTime();
+        render();
+    },50);//setInterval(函数，毫秒)：按指定的周期（以毫秒计）来调用函数或计算表达式。
+
+
+
+
+    /*画布
+     cxt.fillStyle = "yellow";
+     cxt.beginPath();
+     cxt.arc(50,50,50,2*Math.PI,false);//水平，垂直，大小，弧度
+     cxt.closePath();
+     cxt.fill();//填充*/
+    /*
+     *  实现思路：
+     *       1.如何画出没有规则的图形？
+     *           1.1 数组 常用
+     *           1.2 矩阵 需要数学理论基础 比较难
+     *       2.数组如何画出无规则的图形（用数组建立数据模型）
+     *           2.1 通过0 1绘制
+     *               0 代表不绘制
+     *               1 代表绘制
+     *           2.2 确立数组的维度
+     *               2.2.1 要绘制的内容长度
+     *                   0 1 2 3 4 5 6 7 8 9 ：
+     *               2.2.2 要绘制图形的行数与列数
+     *                7列（）10行就（i）的数组
+     *               三围数组 [[[]]]
+     *       3. 借助canvas绘制数字
+     *           3.1 把三围数组里面的1转换成小圆点（arc）
+     *           3.2 确立绘制圆点的位置坐标 半径
+     *               设置圆的半径: R  直径：2R
+     *               一个矩形的宽（高）：2（R+1）
+     *               数组是一个10*7二维数组
+     *               一个数字的宽度：14（R+1） 高度：20（R+1）
+     *               设数字高为100 求R？ 4
+     *       4. 时间的实现
+     *           4.1 日期对象Date获取当前时间 21:48:56
+     *           4.2 数字分别渲染到时间 2 1 4 8 5 6
+     *              正则.exec(string)用于检索字符串中的正则匹配 返回一个数组
+     *       5.圆形粒子随机下落
+     *          5.1 实现原理：
+     *               1.时间数字变化的瞬间，由众多粒子组成的新数字上重复生成形同的粒子，并且生成的粒子做随机抛物线运动
+     *               2. 判断哪些数字在时间更新内发生了变化，通过时间的变化，生成运动的小球，最后更新运动状态
+     *               3.随机抛物线运动怎么做？
+     *                  将小球运动分为x y运动
+     *                  x匀速运动
+     *                  y先做减速运动 再向下做加速运动
+     * */
+</script>
+</html>
